@@ -1,6 +1,7 @@
 from turtle import *
 import random
 import math
+import copy
 
 setup(width=1200, height=600)
 n1, n2, n3, n4 = 3, 3, 2, 3
@@ -91,7 +92,7 @@ def get_directed_vertices_coordcenters(x, y, dict):
 
 #малюємо стрілочки напрямлених графів
 def draw_arrow():
-    directed_matrix_copied = directed_matrix.copy()
+    directed_matrix_copied = copy.deepcopy(directed_matrix)
     for i in range (0, vertices_num):
         for j in range (0, vertices_num):
             #подвійні стрілки
