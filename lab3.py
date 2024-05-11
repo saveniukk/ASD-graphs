@@ -91,11 +91,11 @@ def get_directed_vertices_coordcenters(x, y, dict):
 
 #малюємо стрілочки напрямлених графів
 def draw_arrow():
-    flag = 0 #прапорець для того, щоб визначити чи вже проведена стрілка
+    directed_matrix_copied = directed_matrix.copy()
     for i in range (0, vertices_num):
         for j in range (0, vertices_num):
             #подвійні стрілки
-            if directed_matrix[i][j] == directed_matrix[j][i] == 1 and i != j and flag == 0:
+            if directed_matrix_copied[i][j] == directed_matrix_copied[j][i] == 1 and i != j:
                 start_x, start_y = float(directed_vertices_coord[j + 1][0]), float(directed_vertices_coord[j + 1][1] + 5)
                 end_x, end_y = float(directed_vertices_coord[i + 1][0]), float(directed_vertices_coord[i + 1][1] + 5)
                 arrow(start_x, start_y, end_x, end_y)
@@ -103,10 +103,11 @@ def draw_arrow():
                 start_x, start_y = float(directed_vertices_coord[i + 1][0]), float(directed_vertices_coord[i + 1][1] - 5)
                 end_x, end_y = float(directed_vertices_coord[j + 1][0]), float(directed_vertices_coord [j + 1][1] - 5)
                 arrow(start_x, start_y, end_x, end_y)
-                flag = 1
+
+                directed_matrix_copied[j][i] = 0
 
             #Ламані, для тих стрілок, які знаходяться на одній стороні квадрата
-            elif directed_matrix[i][j] == 1 and i != j and (i+1 in directed_vertices_coordon_same_side[j+1]) and directed_matrix[i][j] != directed_matrix[j][i]:
+            elif directed_matrix_copied[i][j] == 1 and i != j and (i+1 in directed_vertices_coordon_same_side[j+1]) and directed_matrix_copied[i][j] != directed_matrix_copied[j][i]:
                 start_x, start_y = float(directed_vertices_coord[i + 1][0]), float(directed_vertices_coord[i + 1][1])
                 end_x, end_y = float(directed_vertices_coord[j + 1][0]), float(directed_vertices_coord[j + 1][1])
                 if(j <= circles_ps): midle_x, midle_y = (start_x + end_x)/2 + 2*radius, (start_y + end_y)/2 - 4*radius
@@ -120,7 +121,7 @@ def draw_arrow():
                 arrow(midle_x, midle_y, end_x, end_y)
 
             # Малювання петлі для самонапрямленого графа
-            elif directed_matrix[i][j] == 1 and i == j:
+            elif directed_matrix_copied[i][j] == 1 and i == j:
                 penup()
                 setheading(0)
                 goto(directed_vertices_coord[i + 1][0]+10, directed_vertices_coord[i + 1][1]+radius-5)
@@ -140,7 +141,7 @@ def draw_arrow():
                 end_fill()
 
             #Малювання звичайних стрілочок
-            elif directed_matrix[i][j] == 1 and i != j and directed_matrix[i][j] != directed_matrix[j][i]:
+            elif directed_matrix_copied[i][j] == 1 and i != j and directed_matrix_copied[i][j] != directed_matrix_copied[j][i]:
                 start_x, start_y = float(directed_vertices_coord[i + 1][0]), float(directed_vertices_coord[i + 1][1])
                 end_x, end_y = float(directed_vertices_coord[j + 1][0]), float(directed_vertices_coord[j + 1][1])
                 arrow(start_x, start_y, end_x, end_y)
