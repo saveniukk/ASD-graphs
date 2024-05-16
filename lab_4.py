@@ -4,7 +4,6 @@ import math
 import copy
 
 setup(width=1200, height=600)
-window = Screen()
 
 n1, n2, n3, n4 = 3, 3, 2, 3
 k1 = 1.0 - n3 * 0.01 - n4 * 0.01 - 0.3
