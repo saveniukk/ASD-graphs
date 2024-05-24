@@ -479,8 +479,6 @@ def second_part_of_the_lab():
                             if directed_matrix[node_i - 1][node_j - 1] == 1:
                                 condensation_graph[i][j] = 1
                                 break
-                        if condensation_graph[i][j] == 1:
-                            break
 
         return condensation_graph
 
@@ -531,7 +529,7 @@ def second_part_of_the_lab():
     condensation_graph_draw ()
 
 
-speed(100)
+speed(0)
 
 print('Який граф малюємо? Введіть цифру: \n 1. Напрямлений та ненапрямлений графи з першої частини \n 2. Орграф з другої частини лаби та граф конденсації')
 answer = input(" ")

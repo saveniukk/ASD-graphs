@@ -243,7 +243,7 @@ def draw_undirected_graph():
     draw_lines()
     draw_vertices(undirected_vertices_coord)
 
-speed(100)
+speed(0)
 draw_graph()
 draw_undirected_graph()
 done()
