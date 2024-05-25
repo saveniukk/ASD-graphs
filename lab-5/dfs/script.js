@@ -265,6 +265,7 @@ const treeMatrixGen = () => {
 
 function DFS(matrix, startVertex) {
     const stack = [];
+
     const edgeStack = []; 
     const treeMatrix = treeMatrixGen();
     let currentVertex = startVertex;
@@ -277,7 +278,7 @@ function DFS(matrix, startVertex) {
     function nextStep(event) {
         if (event.key === ' ') {
             if (edgeStack.length > 0) {
-                const [u, v] = edgeStack.pop(); 
+                const [u, v] = edgeStack.pop();
                 if (!directedVerticesCoordonSameSide[u + 1].includes(v + 1)) {
                     drawStraightArrow(u, v, 'blue');
                 } else {
@@ -287,7 +288,6 @@ function DFS(matrix, startVertex) {
             } else if (stack.length > 0) {
                 currentVertex = stack.pop();
                 markVertex(currentVertex + 1, 'yellow');
-                let found = false;
                 for (let adjVertex = 0; adjVertex < verticesNum; adjVertex++) {
                     if (matrix[currentVertex][adjVertex] == 1 && vertexStatus[adjVertex] === 0) {
                         k++;
@@ -305,7 +305,6 @@ function DFS(matrix, startVertex) {
             }
         }
     }
-
     document.addEventListener('keydown', nextStep);
 }
 
