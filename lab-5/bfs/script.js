@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 
 const n1 = 3, n2 = 3, n3 = 2, n4 = 3;
 const verticesNum = 10 + n3;
-const k = 1.0 - n3 * 0.01 - n4 * 0.005 - 0.15;
+const k = 1.0 - n3 * 0.01 - n4 * 0.005 - 0.05;
 const circlesPs = Math.floor(verticesNum / 4);
 const radius = 30;
 const margin = (800 / circlesPs - 2 * radius);
@@ -149,10 +149,10 @@ function drawCurvedArrow(i, j, color = 'black') {
 }
 
 function drawDoubleArrow(i, j) {
-    let startX = directedVerticesCoord[i + 1].x + 5;
-    let startY = directedVerticesCoord[i + 1].y - 5;
-    let endX = directedVerticesCoord[j + 1].x + 5;
-    let endY = directedVerticesCoord[j + 1].y - 5;
+    let startX = directedVerticesCoord[i + 1].x + 10;
+    let startY = directedVerticesCoord[i + 1].y - 2;
+    let endX = directedVerticesCoord[j + 1].x + 10;
+    let endY = directedVerticesCoord[j + 1].y - 2;
 
     let dx = endX - startX;
     let dy = endY - startY;
@@ -208,11 +208,11 @@ function drawLoop(i) {
     ctx.stroke();
 
     ctx.beginPath();
-    const arrowX = -radius + loopRadius * Math.cos(1.5 * Math.PI);
-    const arrowY = -radius + loopRadius * Math.sin(1.5 * Math.PI);
+    const arrowX = -radius + loopRadius * Math.cos(0.47 * Math.PI);
+    const arrowY = -radius + loopRadius * Math.sin(0.4 * Math.PI);
     ctx.moveTo(arrowX, arrowY);
-    ctx.lineTo(arrowX - arrowLength, arrowY - arrowHeadWidth / 2);
-    ctx.lineTo(arrowX - arrowLength, arrowY + arrowHeadWidth / 2);
+    ctx.lineTo(arrowX - arrowLength, arrowY - arrowHeadWidth / 1.5);
+    ctx.lineTo(arrowX - arrowLength, arrowY + arrowHeadWidth / 1.5);
     ctx.closePath();
     ctx.fillStyle = 'black';
     ctx.fill();
