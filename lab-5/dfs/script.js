@@ -265,7 +265,7 @@ const treeMatrixGen = () => {
 
 function DFS(matrix, startVertex) {
     const stack = [];
-    const edgeStack = []; // Зберігати напрямлені ребра
+    const edgeStack = []; 
     const treeMatrix = treeMatrixGen();
     let currentVertex = startVertex;
     let k = 1;
@@ -277,7 +277,7 @@ function DFS(matrix, startVertex) {
     function nextStep(event) {
         if (event.key === ' ') {
             if (edgeStack.length > 0) {
-                const [u, v] = edgeStack.pop(); // Витягнути ребро зі стеку
+                const [u, v] = edgeStack.pop(); 
                 if (!directedVerticesCoordonSameSide[u + 1].includes(v + 1)) {
                     drawStraightArrow(u, v, 'blue');
                 } else {
@@ -295,11 +295,9 @@ function DFS(matrix, startVertex) {
                         stack.push(adjVertex);
                         edgeStack.push([currentVertex, adjVertex]);
                         treeMatrix[currentVertex][adjVertex] = 1;
-                        found = true;
                         break;
                     }
                 }
-                if (!found) markVertex(currentVertex + 1, 'green');
             } else {
                 document.removeEventListener('keydown', nextStep);
                 console.log(vertexStatus);
