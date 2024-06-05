@@ -199,8 +199,13 @@ function drawGraphWithMST() {
     let weightMatrix = weightMatrixGen();
     drawArrowHeads(weightMatrix);
     
-    mstEdges = primMST(undirectedMatrix, weightMatrix);
+    const result = primMST(undirectedMatrix, weightMatrix);
+    mstEdges = result.mstEdges;
     currentEdgeIndex = 0;
+    
+    console.log("Graph matrix:", undirectedMatrix);
+    console.log("Weight matrix:", weightMatrix);
+    console.log("Total weight of MST:", result.totalWeight);
 }
 
 function weightMatrixGen() {
@@ -366,6 +371,7 @@ function primMST(graph, weightMatrix) {
     const parent = new Array(numVertices).fill(null);
     const key = new Array(numVertices).fill(Infinity);
     const mstEdges = [];
+    let totalWeight = 0; // Для зберігання загальної ваги MST
 
     key[0] = 0;
     pq.enqueue(0, 0);
@@ -376,6 +382,7 @@ function primMST(graph, weightMatrix) {
 
         if (parent[u] !== null) {
             mstEdges.push([parent[u], u]);
+            totalWeight += weightMatrix[parent[u]][u];
         }
 
         for (let v = 0; v < numVertices; v++) {
@@ -387,7 +394,7 @@ function primMST(graph, weightMatrix) {
         }
     }
 
-    return mstEdges;
+    return { mstEdges, totalWeight };
 }
 
 function drawNextStep() {
