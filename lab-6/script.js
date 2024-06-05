@@ -6,12 +6,15 @@ const verticesNum = 10 + n3;
 const k = 1.0 - n3 * 0.01 - n4 * 0.005 - 0.05;
 const circlesPs = Math.floor(verticesNum / 4);
 const radius = 30;
-const margin = (800 / circlesPs - 2 * radius);
+const margin = (1000 / circlesPs - 2 * radius);
 
 let directedMatrix = [];
-let directedVerticesCoord = {};
+let undirectedMatrix = [];
+let verticesCoord = {};
+let mstEdges = [];
+let currentEdgeIndex = 0;
 
-const directedVerticesCoordonSameSide = {
+const verticesOnSameSide = {
     1: [3, 4, 10, 11],
     2: [4],
     3: [1],
@@ -30,6 +33,7 @@ function directedMatrixGen() {
     const seed = 3323;
     Math.seedrandom(seed);
 
+    directedMatrix = [];
     for (let i = 0; i < verticesNum; i++) {
         let row = [];
         for (let j = 0; j < verticesNum; j++) {
@@ -39,7 +43,22 @@ function directedMatrixGen() {
         }
         directedMatrix.push(row);
     }
-    console.log(directedMatrix);
+}
+
+function undirectedMatrixGen() {
+    directedMatrixGen();
+    undirectedMatrix = [];
+    for (let i = 0; i < verticesNum; i++) {
+        let row = [];
+        for (let j = 0; j < verticesNum; j++) {
+            if (directedMatrix[i][j] === 1 || directedMatrix[j][i] === 1) {
+                row.push(1);
+            } else {
+                row.push(0);
+            }
+        }
+        undirectedMatrix.push(row);
+    }
 }
 
 function getDirectedVerticesCoordcenters(x, y, dict) {
@@ -69,52 +88,42 @@ function getDirectedVerticesCoordcenters(x, y, dict) {
     }
 }
 
-function drawArrowHeads() {
-    let copiedMatrix = JSON.parse(JSON.stringify(directedMatrix));
+function drawArrowHeads(weightMatrix) {
+    let n = 0;
     for (let i = 0; i < verticesNum; i++) {
-        for (let j = 0; j < verticesNum; j++) {
-            if (directedVerticesCoordonSameSide[j + 1]?.includes(i + 1)) {
-                if (copiedMatrix[i][j] === 1 && copiedMatrix[j][i] === 1 && i !== j) {
-                    drawCurvedArrow(i, j);
-                } else if (copiedMatrix[i][j] === 1) {
-                    drawCurvedArrow(i, j);
-                }
-            } else if (copiedMatrix[i][j] === 1 && copiedMatrix[j][i] === 1 && i !== j) {
-                drawDoubleArrow(i, j);
-                copiedMatrix[j][i] = 0;
-            } else if (copiedMatrix[i][j] === 1 && i === j) {
+        for (let j = n; j < verticesNum; j++) {
+            if (undirectedMatrix[i][j] === 1 && verticesOnSameSide[j + 1].includes(i + 1)) {
+                drawCurvedArrow(i, j, weightMatrix);
+            } else if (undirectedMatrix[i][j] === 1 && i === j) {
                 drawLoop(i);
-            } else if (copiedMatrix[i][j] === 1 && i !== j && copiedMatrix[i][j] !== copiedMatrix[j][i] && !directedVerticesCoordonSameSide[j + 1]?.includes(i + 1)) {
-                drawStraightArrow(i, j);
+            } else if (undirectedMatrix[i][j] === 1) {
+                drawStraightArrow(i, j, weightMatrix);
             }
         }
+        n++;
     }
 }
 
-function drawArrow(startX, startY, endX, endY, color = 'black') {
+function drawLine(startX, startY, endX, endY, weight, color = 'black', width = 1) {
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.strokeStyle = color;
     ctx.stroke();
 
-    let angle = Math.atan2(endY - startY, endX - startX);
-    let arrowLength = 15;
-
-    ctx.beginPath();
-    ctx.moveTo(endX, endY);
-    ctx.lineTo(endX - arrowLength * Math.cos(angle - Math.PI / 6), endY - arrowLength * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(endX - arrowLength * Math.cos(angle + Math.PI / 6), endY - arrowLength * Math.sin(angle + Math.PI / 6));
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
+    ctx.font = '13px Arial';
+    ctx.fillStyle = 'red';
+    ctx.lineWidth = width;
+    const textX = (startX * 5 + endX - 60) / 6;
+    const textY = (startY * 5 + endY) / 6;
+    ctx.fillText(weight, textX, textY);
 }
 
-function drawCurvedArrow(i, j, color = 'black') {
-    let startX = directedVerticesCoord[i + 1].x;
-    let startY = directedVerticesCoord[i + 1].y;
-    let endX = directedVerticesCoord[j + 1].x;
-    let endY = directedVerticesCoord[j + 1].y;
+function drawCurvedArrow(i, j, weightMatrix, color = 'black') {
+    let startX = verticesCoord[i + 1].x;
+    let startY = verticesCoord[i + 1].y;
+    let endX = verticesCoord[j + 1].x;
+    let endY = verticesCoord[j + 1].y;
 
     let dx = endX - startX;
     let dy = endY - startY;
@@ -127,32 +136,26 @@ function drawCurvedArrow(i, j, color = 'black') {
     if (i <= circlesPs && j <= circlesPs) {
         middleX = (startX + endX) / 2 + 2 * radius;
         middleY = (startY + endY) / 2;
-    } else if (circlesPs < i && i <= circlesPs * 2) {
+    } else if (circlesPs < j && j <= circlesPs * 2) {
         middleX = (startX + endX) / 2;
         middleY = (startY + endY) / 2 - 2 * radius;
-    } else if (circlesPs * 2 < i && i <= circlesPs * 3) {
+    } else if (circlesPs * 2 < j && j <= circlesPs * 3) {
         middleX = (startX + endX) / 2 - 2 * radius;
         middleY = (startY + endY) / 2;
-    } else if ((circlesPs * 3 < i && i < circlesPs * 4) || (i == 0 && (circlesPs * 3 < j && j < circlesPs * 4))) {
+    } else if ((circlesPs * 3 < j && j < circlesPs * 4)) {
         middleX = (startX + endX) / 2;
         middleY = (startY + endY) / 2 + 2 * radius;
     }
 
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(middleX, middleY);
-    ctx.lineTo(endX, endY);
-    ctx.strokeStyle = color;
-    ctx.stroke();
-
-    drawArrow(middleX, middleY, endX, endY, color);
+    drawLine(startX, startY, middleX, middleY, weightMatrix[i][j], color);
+    drawLine(middleX, middleY, endX, endY, weightMatrix[i][j], color);
 }
 
-function drawDoubleArrow(i, j) {
-    let startX = directedVerticesCoord[i + 1].x + 10;
-    let startY = directedVerticesCoord[i + 1].y - 2;
-    let endX = directedVerticesCoord[j + 1].x + 10;
-    let endY = directedVerticesCoord[j + 1].y - 2;
+function drawStraightArrow(i, j, weightMatrix, color = 'black') {
+    let startX = verticesCoord[i + 1].x;
+    let startY = verticesCoord[i + 1].y;
+    let endX = verticesCoord[j + 1].x;
+    let endY = verticesCoord[j + 1].y;
 
     let dx = endX - startX;
     let dy = endY - startY;
@@ -160,66 +163,18 @@ function drawDoubleArrow(i, j) {
 
     endX = endX - (radius * dx) / distance;
     endY = endY - (radius * dy) / distance;
-    drawArrow(startX, startY, endX, endY);
-
-    startX = directedVerticesCoord[j + 1].x - 5;
-    startY = directedVerticesCoord[j + 1].y + 5;
-    endX = directedVerticesCoord[i + 1].x - 5;
-    endY = directedVerticesCoord[i + 1].y + 5;
-
-    dx = endX - startX;
-    dy = endY - startY;
-    distance = Math.sqrt(dx * dx + dy * dy);
-
-    endX = endX - (radius * dx) / distance;
-    endY = endY - (radius * dy) / distance;
-
-    drawArrow(startX, startY, endX, endY);
-}
-
-function drawStraightArrow(i, j, color = 'black') {
-    let startX = directedVerticesCoord[i + 1].x;
-    let startY = directedVerticesCoord[i + 1].y;
-    let endX = directedVerticesCoord[j + 1].x;
-    let endY = directedVerticesCoord[j + 1].y;
-
-    let dx = endX - startX;
-    let dy = endY - startY;
-    let distance = Math.sqrt(dx * dx + dy * dy);
-
-    endX = endX - (radius * dx) / distance;
-    endY = endY - (radius * dy) / distance;
-    drawArrow(startX, startY, endX, endY, color);
+    drawLine(startX, startY, endX, endY, weightMatrix[i][j], color);
 }
 
 function drawLoop(i) {
-    const x = directedVerticesCoord[i + 1].x;
-    const y = directedVerticesCoord[i + 1].y;
+    const x = verticesCoord[i + 1].x - radius / 1.5;
+    const y = verticesCoord[i + 1].y - radius / 1.5;
     const loopRadius = 20;
-    const arrowLength = 10;
-    const arrowHeadWidth = 10;
-
-    ctx.save();
     ctx.beginPath();
-
-    ctx.translate(x, y);
-    ctx.arc(-radius, -radius, loopRadius, 0, 2 * Math.PI, false);
-    ctx.strokeStyle = 'black';
+    ctx.arc(x, y, loopRadius, 0, 2 * Math.PI);
     ctx.stroke();
-
-    ctx.beginPath();
-    const arrowX = -radius + loopRadius * Math.cos(0.47 * Math.PI);
-    const arrowY = -radius + loopRadius * Math.sin(0.4 * Math.PI);
-    ctx.moveTo(arrowX, arrowY);
-    ctx.lineTo(arrowX - arrowLength, arrowY - arrowHeadWidth / 1.5);
-    ctx.lineTo(arrowX - arrowLength, arrowY + arrowHeadWidth / 1.5);
     ctx.closePath();
-    ctx.fillStyle = 'black';
-    ctx.fill();
-
-    ctx.restore();
 }
-
 
 function drawVertices(dict) {
     for (let vertex in dict) {
@@ -227,7 +182,7 @@ function drawVertices(dict) {
         let y = dict[vertex].y;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = 'lightblue';
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = 'black';
@@ -236,11 +191,226 @@ function drawVertices(dict) {
     }
 }
 
-function drawGraph() {
-    directedMatrixGen();
-    getDirectedVerticesCoordcenters(700, 700, directedVerticesCoord);
-    drawArrowHeads();
-    drawVertices(directedVerticesCoord);
+function drawGraphWithMST() {
+    undirectedMatrixGen();
+    getDirectedVerticesCoordcenters(900, 900, verticesCoord);
+    drawVertices(verticesCoord);
+
+    let weightMatrix = weightMatrixGen();
+    drawArrowHeads(weightMatrix);
+    
+    mstEdges = primMST(undirectedMatrix, weightMatrix);
+    currentEdgeIndex = 0;
 }
 
-drawGraph();
+function weightMatrixGen() {
+    const cMatrix = [];
+    for (let i = 0; i < verticesNum; i++) {
+        let row = [];
+        for (let j = 0; j < verticesNum; j++) {
+            let randomNumber = Math.random();
+            let ceilElement = Math.ceil(randomNumber * 100 * undirectedMatrix[i][j]);
+            row.push(ceilElement);
+        }
+        cMatrix.push(row);
+    }
+
+    const dMatrix = [];
+    for (let i = 0; i < verticesNum; i++) {
+        let row = [];
+        for (let j = 0; j < verticesNum; j++) {
+            row.push(cMatrix[i][j] === 0 ? 0 : 1);
+        }
+        dMatrix.push(row);
+    }
+
+    const hMatrix = [];
+    for (let i = 0; i < verticesNum; i++) {
+        hMatrix.push(Array(verticesNum).fill(0));
+    }
+    for (let i = 0; i < verticesNum; i++) {
+        for (let j = 0; j < verticesNum; j++) {
+            hMatrix[i][j] = (dMatrix[i][j] !== dMatrix[j][i] ? 1 : 0);
+        }
+    }
+
+    let trMatrix = [];
+    for (let i = 0; i < verticesNum; i++) {
+        trMatrix.push(Array(verticesNum).fill(0));
+    }
+
+    for (let i = 0; i < verticesNum; i++) {
+        for (let j = i + 1; j < verticesNum; j++) {
+            trMatrix[i][j] = 1;
+        }
+    }
+
+    const weightMatrix = [];
+    for (let i = 0; i < verticesNum; i++) {
+        weightMatrix.push(Array(verticesNum).fill(0));
+    }
+
+    for (let i = 0; i < verticesNum; i++) {
+        for (let j = 0; j < verticesNum; j++) {
+            weightMatrix[i][j] = (dMatrix[i][j] + hMatrix[i][j] * trMatrix[i][j]) * cMatrix[i][j];
+            weightMatrix[j][i] = weightMatrix[i][j];
+        }
+    }
+    return weightMatrix;
+}
+
+class Node {
+    constructor(item) {
+        this.value = item;
+        this.next = null;
+    }
+}
+
+class LinkedList {
+    constructor() {
+        this.head = null;
+        this.length = 0;
+    }
+
+    add(value) {
+        const node = new Node(value);
+        let current;
+
+        if (!this.head) {
+            this.head = node;
+        } else {
+            current = this.head;
+
+            while (current.next) {
+                current = current.next;
+            }
+
+            current.next = node;
+        }
+        this.length++;
+    }
+
+    remove(index) {
+        if (index < 0 || index >= this.length) {
+            throw new Error('Out of index');
+        } else {
+            let curr, prev, it = 0;
+            curr = this.head;
+            prev = curr;
+            if (index === 0) {
+                this.head = curr.next;
+            } else {
+                while (it < index) {
+                    it++;
+                    prev = curr;
+                    curr = curr.next;
+                }
+                prev.next = curr.next;
+            }
+            this.length--;
+            return curr.value;
+        }
+    }
+
+    get(index) {
+        if (index < 0 || index >= this.length) {
+            throw new Error('Out of index');
+        } else {
+            let curr = this.head;
+            for (let i = 0; i < index; i++) {
+                curr = curr.next;
+            }
+            return curr.value;
+        }
+    }
+}
+
+class PriorityQueue {
+    constructor() {
+        this.items = [];
+    }
+
+    enqueue(element, priority) {
+        let qElement = { element, priority };
+        let added = false;
+
+        for (let i = 0; i < this.items.length; i++) {
+            if (this.items[i].priority > qElement.priority) {
+                this.items.splice(i, 0, qElement);
+                added = true;
+                break;
+            }
+        }
+
+        if (!added) {
+            this.items.push(qElement);
+        }
+    }
+
+    dequeue() {
+        if (this.isEmpty()) {
+            return null;
+        }
+        return this.items.shift();
+    }
+
+    isEmpty() {
+        return this.items.length === 0;
+    }
+}
+
+function primMST(graph, weightMatrix) {
+    const numVertices = graph.length;
+    const pq = new PriorityQueue();
+    const inMST = new Array(numVertices).fill(false);
+    const parent = new Array(numVertices).fill(null);
+    const key = new Array(numVertices).fill(Infinity);
+    const mstEdges = [];
+
+    key[0] = 0;
+    pq.enqueue(0, 0);
+
+    while (!pq.isEmpty()) {
+        const { element: u } = pq.dequeue();
+        inMST[u] = true;
+
+        if (parent[u] !== null) {
+            mstEdges.push([parent[u], u]);
+        }
+
+        for (let v = 0; v < numVertices; v++) {
+            if (graph[u][v] && !inMST[v] && weightMatrix[u][v] < key[v]) {
+                key[v] = weightMatrix[u][v];
+                pq.enqueue(v, key[v]);
+                parent[v] = u;
+            }
+        }
+    }
+
+    return mstEdges;
+}
+
+function drawNextStep() {
+    if (currentEdgeIndex < mstEdges.length) {
+        const [u, v] = mstEdges[currentEdgeIndex];
+        let color = 'red';
+        drawLine(
+            verticesCoord[u + 1].x,
+            verticesCoord[u + 1].y,
+            verticesCoord[v + 1].x,
+            verticesCoord[v + 1].y,
+            ' ',
+            color,
+            2
+        );
+        currentEdgeIndex++;
+    }
+}
+
+drawGraphWithMST();
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === ' ') {
+        drawNextStep();
+    }
+});
